@@ -12,12 +12,312 @@
           integrity="sha384-HzLeBuhoNPvSl5KYnjx0BT+WB0QEEqLprO+NBkkk5gbc67FTaL7XIGa2w1L0Xbgc" crossorigin="anonymous">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
+    <script>
+        let is_connected = false;
+        let balance = 0;
+
+        function setBalance(balance) {
+            jQuery(document).ready(function($){
+                $('#pleb-balance').html(`<small>You hold</small><br>${balance.toLocaleString(undefined, { minimumFractionDigits: 0 })} PLEB`);
+            });
+        }
+
+        function connectWallet() {
+            if (web3 !== undefined) {
+                if (window.ethereum) {
+                    window.web3 = new Web3(window.ethereum);
+                    window.ethereum.enable()
+                        .then((data) => {
+                            if (web3) {
+                                let account = null;
+                                const contractAbi = [{
+                                    "inputs": [],
+                                    "payable": false,
+                                    "stateMutability": "nonpayable",
+                                    "type": "constructor"
+                                }, {
+                                    "anonymous": false,
+                                    "inputs": [{
+                                        "indexed": true,
+                                        "internalType": "address",
+                                        "name": "owner",
+                                        "type": "address"
+                                    }, {
+                                        "indexed": true,
+                                        "internalType": "address",
+                                        "name": "spender",
+                                        "type": "address"
+                                    }, {
+                                        "indexed": false,
+                                        "internalType": "uint256",
+                                        "name": "value",
+                                        "type": "uint256"
+                                    }],
+                                    "name": "Approval",
+                                    "type": "event"
+                                }, {
+                                    "anonymous": false,
+                                    "inputs": [{
+                                        "indexed": true,
+                                        "internalType": "uint256",
+                                        "name": "epoch",
+                                        "type": "uint256"
+                                    }, {
+                                        "indexed": false,
+                                        "internalType": "uint256",
+                                        "name": "totalSupply",
+                                        "type": "uint256"
+                                    }],
+                                    "name": "LogRebase",
+                                    "type": "event"
+                                }, {
+                                    "anonymous": false,
+                                    "inputs": [{
+                                        "indexed": true,
+                                        "internalType": "address",
+                                        "name": "previousOwner",
+                                        "type": "address"
+                                    }],
+                                    "name": "OwnershipRenounced",
+                                    "type": "event"
+                                }, {
+                                    "anonymous": false,
+                                    "inputs": [{
+                                        "indexed": true,
+                                        "internalType": "address",
+                                        "name": "previousOwner",
+                                        "type": "address"
+                                    }, {
+                                        "indexed": true,
+                                        "internalType": "address",
+                                        "name": "newOwner",
+                                        "type": "address"
+                                    }],
+                                    "name": "OwnershipTransferred",
+                                    "type": "event"
+                                }, {
+                                    "anonymous": false,
+                                    "inputs": [{
+                                        "indexed": true,
+                                        "internalType": "address",
+                                        "name": "from",
+                                        "type": "address"
+                                    }, {"indexed": true, "internalType": "address", "name": "to", "type": "address"}, {
+                                        "indexed": false,
+                                        "internalType": "uint256",
+                                        "name": "value",
+                                        "type": "uint256"
+                                    }],
+                                    "name": "Transfer",
+                                    "type": "event"
+                                }, {
+                                    "constant": true,
+                                    "inputs": [{
+                                        "internalType": "address",
+                                        "name": "owner_",
+                                        "type": "address"
+                                    }, {"internalType": "address", "name": "spender", "type": "address"}],
+                                    "name": "allowance",
+                                    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                                    "payable": false,
+                                    "stateMutability": "view",
+                                    "type": "function"
+                                }, {
+                                    "constant": false,
+                                    "inputs": [{
+                                        "internalType": "address",
+                                        "name": "spender",
+                                        "type": "address"
+                                    }, {"internalType": "uint256", "name": "value", "type": "uint256"}],
+                                    "name": "approve",
+                                    "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+                                    "payable": false,
+                                    "stateMutability": "nonpayable",
+                                    "type": "function"
+                                }, {
+                                    "constant": true,
+                                    "inputs": [{"internalType": "address", "name": "who", "type": "address"}],
+                                    "name": "balanceOf",
+                                    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                                    "payable": false,
+                                    "stateMutability": "view",
+                                    "type": "function"
+                                }, {
+                                    "constant": true,
+                                    "inputs": [],
+                                    "name": "controller",
+                                    "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+                                    "payable": false,
+                                    "stateMutability": "view",
+                                    "type": "function"
+                                }, {
+                                    "constant": true,
+                                    "inputs": [],
+                                    "name": "decimals",
+                                    "outputs": [{"internalType": "uint8", "name": "", "type": "uint8"}],
+                                    "payable": false,
+                                    "stateMutability": "view",
+                                    "type": "function"
+                                }, {
+                                    "constant": false,
+                                    "inputs": [{
+                                        "internalType": "address",
+                                        "name": "spender",
+                                        "type": "address"
+                                    }, {"internalType": "uint256", "name": "subtractedValue", "type": "uint256"}],
+                                    "name": "decreaseAllowance",
+                                    "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+                                    "payable": false,
+                                    "stateMutability": "nonpayable",
+                                    "type": "function"
+                                }, {
+                                    "constant": false,
+                                    "inputs": [{
+                                        "internalType": "address",
+                                        "name": "spender",
+                                        "type": "address"
+                                    }, {"internalType": "uint256", "name": "addedValue", "type": "uint256"}],
+                                    "name": "increaseAllowance",
+                                    "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+                                    "payable": false,
+                                    "stateMutability": "nonpayable",
+                                    "type": "function"
+                                }, {
+                                    "constant": true,
+                                    "inputs": [],
+                                    "name": "isOwner",
+                                    "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+                                    "payable": false,
+                                    "stateMutability": "view",
+                                    "type": "function"
+                                }, {
+                                    "constant": true,
+                                    "inputs": [],
+                                    "name": "name",
+                                    "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+                                    "payable": false,
+                                    "stateMutability": "view",
+                                    "type": "function"
+                                }, {
+                                    "constant": true,
+                                    "inputs": [],
+                                    "name": "owner",
+                                    "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+                                    "payable": false,
+                                    "stateMutability": "view",
+                                    "type": "function"
+                                }, {
+                                    "constant": false,
+                                    "inputs": [{
+                                        "internalType": "uint256",
+                                        "name": "epoch",
+                                        "type": "uint256"
+                                    }, {"internalType": "int256", "name": "supplyDelta", "type": "int256"}],
+                                    "name": "rebase",
+                                    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                                    "payable": false,
+                                    "stateMutability": "nonpayable",
+                                    "type": "function"
+                                }, {
+                                    "constant": false,
+                                    "inputs": [],
+                                    "name": "renounceOwnership",
+                                    "outputs": [],
+                                    "payable": false,
+                                    "stateMutability": "nonpayable",
+                                    "type": "function"
+                                }, {
+                                    "constant": false,
+                                    "inputs": [{"internalType": "address", "name": "_controller", "type": "address"}],
+                                    "name": "setController",
+                                    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                                    "payable": false,
+                                    "stateMutability": "nonpayable",
+                                    "type": "function"
+                                }, {
+                                    "constant": true,
+                                    "inputs": [],
+                                    "name": "symbol",
+                                    "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+                                    "payable": false,
+                                    "stateMutability": "view",
+                                    "type": "function"
+                                }, {
+                                    "constant": true,
+                                    "inputs": [],
+                                    "name": "totalSupply",
+                                    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                                    "payable": false,
+                                    "stateMutability": "view",
+                                    "type": "function"
+                                }, {
+                                    "constant": false,
+                                    "inputs": [{"internalType": "address", "name": "to", "type": "address"}, {
+                                        "internalType": "uint256",
+                                        "name": "value",
+                                        "type": "uint256"
+                                    }],
+                                    "name": "transfer",
+                                    "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+                                    "payable": false,
+                                    "stateMutability": "nonpayable",
+                                    "type": "function"
+                                }, {
+                                    "constant": false,
+                                    "inputs": [{
+                                        "internalType": "address",
+                                        "name": "from",
+                                        "type": "address"
+                                    }, {"internalType": "address", "name": "to", "type": "address"}, {
+                                        "internalType": "uint256",
+                                        "name": "value",
+                                        "type": "uint256"
+                                    }],
+                                    "name": "transferFrom",
+                                    "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+                                    "payable": false,
+                                    "stateMutability": "nonpayable",
+                                    "type": "function"
+                                }, {
+                                    "constant": false,
+                                    "inputs": [{"internalType": "address", "name": "newOwner", "type": "address"}],
+                                    "name": "transferOwnership",
+                                    "outputs": [],
+                                    "payable": false,
+                                    "stateMutability": "nonpayable",
+                                    "type": "function"
+                                }];
+                                const contractAddress = '0x34fcA40cBDfd854656ffd552c62f1d861d46D88C';
+                                const contract = web3.eth.contract(contractAbi).at(contractAddress);
+
+                                web3.eth.getAccounts(function (x, accounts) {
+                                    account = accounts[0];
+
+                                    contract.balanceOf(account, 'latest', function (x, bal) {
+                                        is_connected = true;
+                                        balance = bal['c'][0] / 10 ** 9;
+                                        setBalance(balance);
+                                    });
+                                });
+                            }
+                        }, (reason) => {
+                            balance = 'Connect';
+                        });
+                }
+            }
+        }
+
+        connectWallet();
+    </script>
 </head>
 <body>
 <div class="row">
-    <div class="col-12 col-lg-3">
+    <div class="col-12 col-lg-3 bg-light">
         <div class="text-center mt-5 d-none d-lg-block min-vh-100">
-            <img src="img/the_first_pleb.png" alt="The first Pleb" class="w-75"/>
+            <div>
+                <button id="pleb-balance" class="btn btn-sm btn-outline-dark" onclick="connectWallet()">Connect Wallet</button>
+            </div>
+            <img src="img/the_first_pleb.png" alt="The first Pleb" class="mt-5 w-75"/>
             <div style="font-family: 'Londrina Solid', cursive; font-size: 4em">Proof of $PLEB</div>
             <div class="mt-2 text-center">
                 <a href="/uniswap" target="_blank" class="btn btn-lg btn-primary shadow"
@@ -41,7 +341,7 @@
             </div>
         </div>
         <div class="text-center mt-5 pt-5 d-block d-lg-none" style="font-size: 1.8em;">
-            <img src="img/the_first_pleb.png" alt="The first Pleb" style="height:40vh"/>
+            <img src="img/the_first_pleb.png" alt="The first Pleb" style="height:35vh"/>
             <div style="font-family: 'Londrina Solid', cursive; font-size: 4em">Proof of $PLEB</div>
             <div class="text-center">
                 <a href="/uniswap" target="_blank" class="btn btn-lg btn-primary shadow mt-5 p-4 w-75"
@@ -69,7 +369,13 @@
         </div>
     </div>
     <div class="col border-left pl-0">
-        <div class="ml-4 mt-5 mr-4 mb-5 d-none d-lg-block vh-100 overflow-auto">
+        <div class="bg-warning text-center small p-1 d-none d-lg-block">The airdrop registrations have ended.
+            Join our Telegram to know about upcoming campaigns and news. <a href="https://t.me/ProofOfPleb" target="_blank">Join
+                now</a></div>
+        <div class="bg-warning text-center small p-1 d-block d-lg-none" style="font-size: 1.5em;">The airdrop
+            registrations have ended.<br>Join our Telegram to know about upcoming campaigns and news. <a
+                    href="https://t.me/ProofOfPleb" target="_blank">Join now</a></div>
+        <div class="ml-4 mt-5 mr-4 d-none d-lg-block vh-100 overflow-auto">
             <div class="font-weight-bold text-center" style="font-size: 2.8em;">
                 The Hybrid Token for Plebs
             </div>
@@ -81,9 +387,8 @@
             </p>
 
             <div class="text-center">
-                <a href="/announcement" target="_blank"
-                   class="btn btn-sm btn-dark shadow">
-                    Read the Announcement
+                <a href="/announcement" target="_blank">
+                    <u>Read the Announcement</u>
                 </a>
             </div>
 
@@ -202,11 +507,5 @@
         </div>
     </div>
 </div>
-<div class="bg-warning text-center small p-1 vw-100 fixed-top d-none d-lg-block">The airdrop registrations have ended.
-    Join our Telegram to know about upcoming campaigns and news. <a href="https://t.me/ProofOfPleb" target="_blank">Join
-        now</a></div>
-<div class="bg-warning text-center small p-1 vw-100 fixed-top d-block d-lg-none" style="font-size: 1.5em;">The airdrop
-    registrations have ended.<br>Join our Telegram to know about upcoming campaigns and news. <a
-            href="https://t.me/ProofOfPleb" target="_blank">Join now</a></div>
 </body>
 </html>
